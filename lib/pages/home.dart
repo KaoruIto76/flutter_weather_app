@@ -1,113 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key key}) : super(key: key);
+class HomeStore extends ChangeNotifier {
+  String _locaton = 'Tokyo';
 
-  @override
-  _Home createState() => _Home();
+  void notify(String location) {
+    this._locaton = location;
+    notifyListeners();
+  }
 }
 
-class _Home extends State {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+class Home extends StatelessWidget {
+  Home({Key key}) : super(key: key);
 
-  void _closeEndDrawer() {
-    Navigator.of(context).pop();
-  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<FormState>     _formKey     = GlobalKey<FormState>();
+
+  final locationController = TextEditingController();
+
+   double _iconSize = 20.0;
+   double _fontSize = 15.0;
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      key: _scaffoldKey,
-      appBar: _buildHeader(),
-      endDrawer: _buildDrawer(),
+    return ChangeNotifierProvider(
+      create: (context) => HomeStore(),
+      child:  Builder(builder: (BuildContext context) {
+        final store     = Provider.of<HomeStore>(context);
+        final _location = store._locaton;
+        return Scaffold(
+          key:       _scaffoldKey,
+          endDrawer: _buildDrawer(context),
+          appBar:    AppBar(
+            titleSpacing: 0.0,
+            centerTitle: false,
+            title: Container(
+              margin:  EdgeInsets.only(left: 7.0),
+              child: ButtonTheme(
+                child: TextButton(
+                  onPressed: () async {
+                    String res = await _openDialog(context);
+                    store.notify(res);
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        child: Icon(Icons.place_outlined,size: _iconSize, color: Colors.grey)
+                      ),
+                      Container(
+                        padding:  EdgeInsets.only(left: 6.0),
+                        child: Text(
+                          _location,
+                          textAlign: TextAlign.left,
+                          style: TextStyle(fontSize: _fontSize, color: Colors.grey)
+                        ),
+                      )
+                    ]
+                  )
+                )
+              )
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.menu,color: Colors.grey),
+                onPressed: () => _scaffoldKey.currentState.openEndDrawer()
+              )
+            ],
+            backgroundColor: Colors.white,
+            shadowColor:     Colors.white,
+          ),
+        );
+      })
     );
   }
 
-  // ScaffoldKeyの理解がまだまだ甘い
-  Widget _buildDrawer() {
+  Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: ListView(
         children: <Widget>[
-          DrawerHeader(
-            child: Text(
-              'My App',
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-              ),
-            ),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
-          ),
           ListTile(
             title: Text('Los Angeles'),
-            onTap: () {
-              _closeEndDrawer();
-            },
+            onTap: () => Navigator.of(context).pop()
           ),
           ListTile(
             title: Text('Honolulu'),
-            onTap: () {
-              _closeEndDrawer();
-            },
+            onTap: () => Navigator.of(context).pop()
           ),
           ListTile(
             title: Text('Dallas'),
-            onTap: () {
-              _closeEndDrawer();
-            },
-          ),
-          ListTile(
-            title: Text('Seattle'),
-            onTap: () {
-              _closeEndDrawer();
-            },
+            onTap: () => Navigator.of(context).pop()
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return AppBar(
-      leadingWidth:    100,
-      leading:         _buildIconButton(),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.menu,color: Colors.grey),
-          onPressed: () => _scaffoldKey.currentState.openEndDrawer()
-        )
-      ],
-      backgroundColor: Colors.white,
-      shadowColor:     Colors.white,
-    );
-  }
-
-  Widget _buildIconButton() {
-    const icon_size = 20.0;
-    const font_size = 15.0;
-    return ButtonTheme(
-        minWidth: 100,
-        child: TextButton(
-          onPressed: () => print('touched leading icon'),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize:  MainAxisSize.max,
-            children: [
-              // https://aimana-it.com/widget-of-the-week-35-spacer/
-              Spacer(),
-              Icon(Icons.place_outlined,size: icon_size, color: Colors.grey),
-              Spacer(),
-              Text(
-                "Tokyo",
-                textAlign: TextAlign.left,
-                style: TextStyle(fontSize: font_size, color: Colors.grey)
+  Future<String> _openDialog(BuildContext context) {
+    return showDialog(
+      context:  context,
+      builder:  (BuildContext context) => new Dialog(
+        insetPadding: EdgeInsets.all(15),
+        child: Form(
+          key:   _formKey,
+          child: TextFormField(
+            controller:      locationController,
+            textInputAction: TextInputAction.next,
+            autofocus:       true,
+            onChanged: (v) {
+              if(this._formKey.currentState.validate()) {
+                this._formKey.currentState.save();
+              }
+            },
+            decoration: new InputDecoration(
+              contentPadding: EdgeInsets.all(20),
+              labelText:      'location',
+              labelStyle:     TextStyle(color: Colors.grey),
+              suffixIcon:     IconButton(
+                icon:      Icon(Icons.arrow_right),
+                onPressed: () {
+                  print('presed');
+                  Navigator.pop(context,this.locationController.text);
+                }
               ),
-              Spacer(),
-            ]
-          )
+            ),
+            validator: (v) => v.isEmpty ? 'valid' : null,
+            onSaved: (v) => print('saved'),
+          ),
         )
+      )
     );
   }
 }

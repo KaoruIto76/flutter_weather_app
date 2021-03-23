@@ -6,6 +6,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Home(),
       routes: <String, WidgetBuilder> {
         '/home': (BuildContext context) => new Home(),
