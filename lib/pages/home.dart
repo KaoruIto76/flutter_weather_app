@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeStore extends ChangeNotifier {
   String _locaton = 'Tokyo';
@@ -31,6 +32,18 @@ class Home extends StatelessWidget {
         return Scaffold(
           key:       _scaffoldKey,
           endDrawer: _buildDrawer(context),
+          body: Container(
+             child: SvgPicture.asset(
+                'images/weather-icon/wi-cloudy-gusts.svg',
+                height: 200.0,
+                width: 200.0,
+                color: Colors.grey,
+              )
+          ),
+         // Image(
+         //   image: AssetImage('images/dog-call.png'),
+         //   fit:   BoxFit.cover
+         // ),
           appBar:    AppBar(
             titleSpacing: 0.0,
             centerTitle: false,
@@ -81,15 +94,15 @@ class Home extends StatelessWidget {
         children: <Widget>[
           ListTile(
             title: Text('Los Angeles'),
-            onTap: () => Navigator.of(context).pop()
+            onTap: () => Navigator.pop(context)
           ),
           ListTile(
             title: Text('Honolulu'),
-            onTap: () => Navigator.of(context).pop()
+            onTap: () => Navigator.pop(context)
           ),
           ListTile(
             title: Text('Dallas'),
-            onTap: () => Navigator.of(context).pop()
+            onTap: () => Navigator.pop(context)
           ),
         ],
       ),
@@ -107,11 +120,7 @@ class Home extends StatelessWidget {
             controller:      locationController,
             textInputAction: TextInputAction.next,
             autofocus:       true,
-            onChanged: (v) {
-              if(this._formKey.currentState.validate()) {
-                this._formKey.currentState.save();
-              }
-            },
+            onChanged: (v) => print('changed'),
             decoration: new InputDecoration(
               contentPadding: EdgeInsets.all(20),
               labelText:      'location',
@@ -119,16 +128,22 @@ class Home extends StatelessWidget {
               suffixIcon:     IconButton(
                 icon:      Icon(Icons.arrow_right),
                 onPressed: () {
+                  if(this._formKey.currentState.validate()) {
+                    print('aaaa');
+                    this._formKey.currentState.save();
+                  }
                   print('presed');
-                  Navigator.pop(context,this.locationController.text);
                 }
               ),
             ),
             validator: (v) => v.isEmpty ? 'valid' : null,
-            onSaved: (v) => print('saved'),
+            onSaved: (v) {
+              print('saved');
+              Navigator.pop(context,this.locationController.text);
+            }
           ),
         )
       )
-    );
+    ).then((v) => this.locationController.text);
   }
 }
